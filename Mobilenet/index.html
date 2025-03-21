@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Define el idioma del contenido como inglés -->
+
+<head>
+    <!-- Metadatos del documento -->
+    <meta charset="UTF-8">
+    <!-- Especifica la codificación de caracteres como UTF-8 -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Configura la ventana gráfica para que el diseño sea responsive en dispositivos móviles -->
+
+    <title>Mobile Web</title>
+    <!-- Título de la página que aparece en la pestaña del navegador -->
+
+    <link rel="stylesheet" href="styles.css">
+    <!-- Enlace a un archivo CSS externo para los estilos de la página -->
+
+    <!-- Scripts de TensorFlow.js y MobileNet -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <!-- Incluye la biblioteca TensorFlow.js desde un CDN para usar TensorFlow en el navegador -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <!-- Incluye el modelo MobileNet desde un CDN para realizar tareas de clasificación de imágenes -->
+</head>
+
+<body>
+    <!-- Cuerpo del documento HTML donde se colocará el contenido visible -->
+
+    <!-- Elemento de video para capturar la imagen -->
+    <video id="video" autoplay playsinline muted width="640" height="480"></video>
+    <!-- Video en vivo desde la cámara del usuario -->
+
+    <!-- Contenedor para mostrar los resultados -->
+    <div id="results">
+        <!-- Aquí se imprimirán los resultados del modelo MobileNet -->
+    </div>
+
+    <script>
+        // Código JavaScript para inicializar el video y usar MobileNet
+        const video = document.getElementById('video');
+        const resultsContainer = document.getElementById('results');
+
+        // Solicitar acceso a la cámara trasera
+        navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { exact: "environment" } // Solicita específicamente la cámara trasera
+            }
+        })
+        .then((stream) => {
+            video.srcObject = stream; // Asigna el flujo de video al elemento <video>
+            video.onloadedmetadata = () => {
+                video.play(); // Asegura que el video comience a reproducirse
+            };
+        })
+        .catch((err) => {
+            console.error('Error al acceder a la cámara:', err);
+        });
+
+        // Cargar el modelo MobileNet y realizar predicciones
+        async function loadModel() {
+            const model = await mobilenet.load();
+            console.log('Modelo MobileNet cargado');
+
+            // Realizar predicciones continuamente
+            setInterval(async () => {
+                const predictions = await model.classify(video);
+                resultsContainer.innerHTML = predictions.map(prediction => `
+                    <p>${prediction.className}: ${prediction.probability.toFixed(2)}</p>
+                `).join('');
+            }, 1000); // Actualizar cada segundo
+        }
+
+        loadModel();
+    </script>
+</body>
+</html>
